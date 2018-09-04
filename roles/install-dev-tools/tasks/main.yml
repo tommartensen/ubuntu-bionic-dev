@@ -1,0 +1,59 @@
+- name: Check if docker is installed
+  command: docker --version
+  register: docker_check
+  ignore_errors: true
+
+- name: Install Docker
+  shell: curl -fsSSL get.docker.com | sh
+  when: docker_check is failed
+
+- name: Add user to docker group
+  shell: usermod -aG docker vagrant
+  become: true
+  when: docker_check is failed
+
+- name: Check if docker-compose is installed
+  command: docker-compose --version
+  register: docker_compose_check
+  ignore_errors: true
+
+- name: Install docker-compose
+  shell: pip3 install docker-compose
+  become: true
+  when: docker_compose_check is failed
+
+- name: Check if brew is installed
+  command: brew --version
+  register: brew_check
+  ignore_errors: true
+
+- name: Install Linuxbrew
+  shell: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)"
+  when: brew_check is failed
+
+- name: Copy profile file
+  copy:
+    src: roles/install-dev-tools/files/.profile
+    dest: ~/.profile
+  when: brew_check is failed
+
+- name: Apply new profile settings
+  shell: . ~/.profile
+
+- name: Tap Brew Bundle
+  shell: brew tap homebrew/bundle
+  when: brew_check
+
+- name: Copy Brewfile
+  copy:
+    src: roles/install-dev-tools/files/Brewfile
+    dest: Brewfile
+  when: brew_check
+
+- name: Install Compilers from Brew
+  shell: brew bundle
+  when: brew_check
+
+- name: Remove Brewfile from remote machine
+  file: path=Brewfile state=absent
+  when: brew_check

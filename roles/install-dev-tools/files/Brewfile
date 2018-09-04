@@ -1,0 +1,4 @@
+brew "go"
+brew "node"
+brew "kubernetes-cli"
+brew "kubernetes-helm"

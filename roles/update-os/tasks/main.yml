@@ -1,0 +1,20 @@
+- name: Update APT Registry
+  shell: apt update
+  become: true
+
+- name: Upgrade Installed Binaries
+  shell: apt upgrade -y
+  become: true
+
+- name: Install Essential Binaries
+  shell: apt install -y curl ruby ruby-dev python3-pip
+  become: true
+
+- name: Check if ssh key exists
+  stat:
+    path: ~/.ssh/id_rsa.pub
+  register: ssh_key_file
+
+- name: Create ssh key
+  shell: ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+  when: ssh_key_file.stat.exists == False
